@@ -17,9 +17,44 @@ export default function ResultDisplay({ result, videoURL, onReset }) {
     });
   }, [result, showAll, probabilityFilter]);
 
+  // Helper function to convert HH:MM:SS to total seconds
+  const timeStringToSeconds = (timeString) => {
+    if (typeof timeString !== "string") {
+      // If it's already a number, or null/undefined, return it (or 0 for safety)
+      return parseFloat(timeString) || 0;
+    }
+    const parts = timeString.split(":");
+    if (parts.length === 3) {
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      const seconds = parseFloat(parts[2]); // Use parseFloat for seconds to handle potential milliseconds
+      if (!isNaN(hours) && !isNaN(minutes) && !isNaN(seconds)) {
+        return hours * 3600 + minutes * 60 + seconds;
+      }
+    }
+    console.warn("Could not parse time string:", timeString);
+    return 0; // Return 0 or handle error appropriately
+  };
+
+  const processedViolentTimestamps = useMemo(() => {
+    return result.timestamps
+      .filter((t) => t.probability > 75)
+      .map((ts) => ({
+        ...ts,
+        time: timeStringToSeconds(ts.time), // Convert time here
+      }));
+  }, [result.timestamps]);
+
   const handleTimestampClick = (time) => {
-    if (playerRef.current) {
-      playerRef.current.seekTo(time);
+    const seekTime = timeStringToSeconds(time); // Convert here
+    if (!isNaN(seekTime) && Number.isFinite(seekTime) && playerRef.current) {
+      playerRef.current.seekTo(seekTime);
+    } else {
+      console.warn(
+        "Attempted to seek to a non-finite time after conversion:",
+        time,
+        seekTime
+      );
     }
   };
 
@@ -37,7 +72,7 @@ export default function ResultDisplay({ result, videoURL, onReset }) {
       <CustomVideoPlayer
         ref={playerRef}
         src={videoURL}
-        violentTimestamps={result.timestamps.filter((t) => t.probability > 75)}
+        violentTimestamps={processedViolentTimestamps} // Use the processed array
       />
 
       <div className="bg-white p-6 rounded-lg shadow-lg">
@@ -80,7 +115,7 @@ export default function ResultDisplay({ result, videoURL, onReset }) {
                   className="bg-white border-b cursor-pointer"
                 >
                   <td className="px-6 py-4 font-medium text-slate-950">
-                    {ts.time.toFixed(2)}s
+                    {timeStringToSeconds(ts.time).toFixed(2)}s
                   </td>
                   <td className="px-6 py-4">
                     <span

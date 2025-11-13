@@ -21,91 +21,64 @@ const Upload = () => {
     }
   };
 
-  // const handleDetect = () => {
-  //   if (!file || !fileURL) return;
-  //   setStatus("processing");
-  //   setProcessingStep("Loading video...");
-
-  //   const video = document.createElement("video");
-  //   video.preload = "metadata";
-  //   video.src = fileURL;
-
-  //   video.onloadedmetadata = () => {
-  //     const videoDuration = video.duration;
-  //     // URL.revokeObjectURL(video.src); // Clean up memory
-
-  //     // Simulate processing steps
-  //     setTimeout(() => {
-  //       setProcessingStep("Preprocessing...");
-  //       setTimeout(() => {
-  //         setProcessingStep("AI is working...");
-  //         setTimeout(() => {
-  //           // Generate mock data with one entry per second of video.
-  //           const timestamps = Array.from(
-  //             { length: Math.floor(videoDuration) },
-  //             (_, i) => {
-  //               const isPotentiallyViolent = Math.random() < 0.2; // 20% chance of a high-prob event
-  //               return {
-  //                 time: i + Math.random(), // Add jitter to the second
-  //                 probability: isPotentiallyViolent
-  //                   ? 50 + Math.random() * 50
-  //                   : Math.random() * 50,
-  //               };
-  //             }
-  //           );
-
-  //           const highProbEvents = timestamps.filter(
-  //             (t) => t.probability > 75
-  //           ).length;
-  //           const overallProbability = Math.min(
-  //             100,
-  //             (highProbEvents / (videoDuration || 1)) * 200 + Math.random() * 20
-  //           );
-
-  //           setResult({
-  //             overallProbability: Math.floor(overallProbability),
-  //             timestamps: timestamps,
-  //           });
-  //           setStatus("result");
-  //         }, 1500);
-  //       }, 1500);
-  //     }, 500);
-  //   };
-
-  //   video.onerror = () => {
-  //     URL.revokeObjectURL(video.src); // Clean up memory
-  //     console.error(
-  //       "Could not load video metadata. Please check the file format."
-  //     );
-  //     setStatus("idle");
-  //   };
-  // };
-
   const handleDetect = async () => {
-    // Nếu cần file, có thể bỏ qua hoặc giữ điều kiện tùy mục đích
-    // if (!file) return;
+    if (!file) {
+      alert("Please select a video file first.");
+      return;
+    }
 
     setStatus("processing");
-    setProcessingStep("Fetching JSON...");
+    setProcessingStep("Uploading video...");
+
+    const formData = new FormData();
+    formData.append("video_file", file); // Use 'video_file' or whatever name your backend expects for the video input
 
     try {
-      // Gọi API backend Flask
-      const response = await fetch("http://127.0.0.1:5000/get_json");
+      // Replace with your actual ngrok URL
+      const apiUrl = "https://mutably-suppletory-ned.ngrok-free.dev/analyze/";
+
+      const response = await fetch(apiUrl, {
+        method: "POST", // It must be a POST request to send a file
+        body: formData,
+        // The 'Content-Type' header is automatically set to 'multipart/form-data'
+        // by the browser when you use FormData, so you don't need to set it manually.
+      });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch JSON.");
+        // Attempt to parse error message from backend if available
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+        } catch (e) {
+          // If response is not JSON, use default error message
+        }
+        throw new Error(errorMessage);
       }
 
-      setProcessingStep("Processing JSON...");
-      const data = await response.json(); // Đây chính là JSON từ backend
+      setProcessingStep("Analyzing video with AI...");
+      const data = await response.json(); // This is where you expect your detection results
 
-      setResult(data); // Lưu JSON vào state hoặc hiển thị
-      setStatus("result");
+      // Validate the structure of the data returned by the API
+      if (
+        data &&
+        typeof data.overallProbability === "number" &&
+        Array.isArray(data.timestamps)
+      ) {
+        setResult(data);
+        setStatus("result");
+      } else {
+        throw new Error("API returned invalid data format.");
+      }
     } catch (error) {
-      console.error("Error fetching JSON:", error);
-      alert("Error: ${error.message}");
-      setStatus("idle");
+      console.error("Detection error:", error);
+      alert(`An error occurred during detection: ${error.message}`);
+      setStatus("idle"); // Reset to idle state on error
+    } finally {
+      // Optional: Clean up the fileURL if you only need it for the upload
+      // if (fileURL) {
+      //   URL.revokeObjectURL(fileURL);
+      // }
     }
   };
 

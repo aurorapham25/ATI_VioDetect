@@ -171,7 +171,11 @@ const CustomVideoPlayer = forwardRef(({ src, violentTimestamps }, ref) => {
   // ✅ expose control functions to parent
   useImperativeHandle(ref, () => ({
     seekTo: (timeInSeconds) => {
-      if (videoRef.current) {
+      if (
+        videoRef.current &&
+        !isNaN(timeInSeconds) &&
+        Number.isFinite(timeInSeconds)
+      ) {
         videoRef.current.currentTime = timeInSeconds;
         videoRef.current.play();
         setIsPlaying(true);
