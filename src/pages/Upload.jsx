@@ -34,11 +34,11 @@ const Upload = () => {
     formData.append("video_file", file); // Use 'video_file' or whatever name your backend expects for the video input
 
     try {
-      // Replace with your actual ngrok URL
       const apiUrl = "https://mutably-suppletory-ned.ngrok-free.dev/analyze/";
+      // const apiUrl = "https://mutably-suppletory-ned.ngrok-free.dev/analyze_UI_test/";
 
       const response = await fetch(apiUrl, {
-        method: "POST", // It must be a POST request to send a file
+        method: "POST",
         body: formData,
         // The 'Content-Type' header is automatically set to 'multipart/form-data'
         // by the browser when you use FormData, so you don't need to set it manually.
@@ -74,11 +74,6 @@ const Upload = () => {
       console.error("Detection error:", error);
       alert(`An error occurred during detection: ${error.message}`);
       setStatus("idle"); // Reset to idle state on error
-    } finally {
-      // Optional: Clean up the fileURL if you only need it for the upload
-      // if (fileURL) {
-      //   URL.revokeObjectURL(fileURL);
-      // }
     }
   };
 
