@@ -1,29 +1,36 @@
-import cv2
+import os
+from pathlib import Path
+import shutil
 import time
+import json
 import asyncio
-from fastapi import FastAPI
+from concurrent.futures import ThreadPoolExecutor
+
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-from pyngrok import ngrok
+from fastapi.responses import JSONResponse, StreamingResponse
 
-# --------------------------
-# Ngrok
-# --------------------------
-ngrok.set_auth_token("35Ed3pUzlE7bPZd2SyXPqTvOC6N_6JR3ZU3yhpDXu3mvQyoub")
-public_url = ngrok.connect(8000)
-print("Ngrok URL:", public_url)
+from pipeline.realtime_pipeline import realtime_pipeline
+from pipeline.pipeline import pipeline
 
-# --------------------------
-# Camera config
-# --------------------------
-CAMERA_URL = "http://192.168.1.57:8080/video"  # 1 camera thật
-NUM_CAMERAS = 8
-lst_camera_urls = [CAMERA_URL for _ in range(NUM_CAMERAS)]
-camera_id_lst = [i+1 for i in range(NUM_CAMERAS)]
+# -------------------------
+# Config
+# -------------------------
+NUM_CAMERAS = int(input("Number of camera (from 1 - 8): "))
+lst_camera_urls = []
+for i in range(NUM_CAMERAS):
+    camera_url = input("Link of " + str(i) + "th camera: ")
+    lst_camera_urls.append(camera_url)
 
-# --------------------------
-# FastAPI app
-# --------------------------
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Thread pool để chạy pipeline nặng mà không block server
+executor = ThreadPoolExecutor(max_workers=4)
+
+# -------------------------
+# FastAPI init
+# -------------------------
 app = FastAPI()
 
 app.add_middleware(
@@ -34,61 +41,45 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --------------------------
-# Connect to camera thật
-# --------------------------
-def connect_and_stream(camera_url):
-    cap = cv2.VideoCapture(camera_url)
-    if not cap.isOpened():
-        yield (False, None)
-        return
+# -------------------------
+# Realtime streaming
+# -------------------------
+async def event_generator():
+    loop = asyncio.get_running_loop()
     while True:
-        ret, frame = cap.read()
-        yield (ret, frame)
-        if not ret:
-            time.sleep(0.1)
+        # Chạy pipeline trong thread pool để không block server
+        result = await loop.run_in_executor(executor, realtime_pipeline, lst_camera_urls)
+        # SSE format
+        yield f"data: {json.dumps(result)}\n\n"
+        await asyncio.sleep(1)  # 1s giữa các frame
 
-# --------------------------
-# Generator frame với duplicate cho demo
-# --------------------------
-def generate_frames(camera_id):
+@app.get("/realtime_stream")
+async def realtime_stream():
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+# -------------------------
+# -------------------------
+@app.post("/upload_video")
+async def upload_video(file: UploadFile = File(...)):
     """
-    Chỉ 1 camera thật, các camera khác duplicate frame
+    User uploads a video, server runs pipeline(video_path) and returns JSON prediction.
     """
-    # Camera thật là camera_id = 1 (index 0)
-    real_cam_index = 0
-    real_cam_url = lst_camera_urls[real_cam_index]
-    cam_gen = connect_and_stream(real_cam_url)
+    try:
+        # Lưu file tạm
+        timestamp = int(time.time())
+        video_path = os.path.join(UPLOAD_DIR, f"{timestamp}_{file.filename}")
+        with open(video_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
 
-    for ret, frame in cam_gen:
-        if not ret:
-            continue
-        # Encode JPEG
-        ret2, buffer = cv2.imencode(".jpg", frame)
-        frame_bytes = buffer.tobytes()
+        # Chạy pipeline trong thread pool để không block
+        loop = asyncio.get_running_loop()
+        result = await loop.run_in_executor(executor, pipeline, video_path)
 
-        # Nếu camera_id >1, vẫn gửi frame từ camera thật (duplicate)
-        yield (
-            b"--frame\r\n"
-            b"Content-Type: image/jpeg\r\n\r\n" + frame_bytes + b"\r\n"
-        )
+        return JSONResponse(result)
 
-# --------------------------
-# Endpoint cho frontend
-# --------------------------
-@app.get("/video_feed/{camera_id}")
-def video_feed(camera_id: int):
-    if camera_id < 1 or camera_id > NUM_CAMERAS:
-        return {"error": "camera_id invalid"}
-    return StreamingResponse(
-        generate_frames(camera_id),
-        media_type="multipart/x-mixed-replace; boundary=frame"
-    )
+    except Exception as e:
+        return JSONResponse({"message": str(e)}, status_code=500)
 
-# --------------------------
-# Run server
-# --------------------------
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 Server running at http://127.0.0.1:8000")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)

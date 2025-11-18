@@ -15,7 +15,7 @@ def delete_resource(video_path):
     # Các thư mục cần xóa
     folders_to_delete = [
         Path(f"{base_name}_folder"),
-        Path(f"{base_name}_tensor")
+        Path(f"{base_name}_folder_tensor")
     ]
 
     for folder in folders_to_delete:

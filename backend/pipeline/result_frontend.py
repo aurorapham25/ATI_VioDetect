@@ -11,7 +11,9 @@ def convert_scene_results(scene_data):
       {
         "overallProbability": <avg of all vio_prob * 100>,
         "timestamps": [
-          {"time": "00:00:16", "probability": 24.4},
+          {"time": "00:00:01", "probability": 24.4},
+          {"time": "00:00:02, "probability": 24.4}
+          {"time": "00:00:03", "probability": 24.4}
           ...
         ],
         "message": "Video analysis complete."
