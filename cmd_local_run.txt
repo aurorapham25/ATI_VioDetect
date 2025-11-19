@@ -1,0 +1,31 @@
+Em chào thầy ạ
+Đây là video hướng dẫn chạy project ạ
+
+Đầu tiên thì mình chạy backend trước
+
+1. Chạy backend
+Step 1: cd tới backend
+Step 2: Nhập "python -m uvicorn main.server:app --reload"
+
+Dấu hiệu khi backend chạy dc:
+- Model được load
+- Có thông báo server chạy dc
+- Terminal hỏi số lượng camera
+
+2. Chạy frontend
+Step 1: cd tới frontend
+Step 2: Nhập "npx vite --host --port 5731"
+
+Dấu hiệu khi frontend chạy dc: Có link hiện ra
+
+Kết nối camera:
+
+- Bọn em thường dùng app IP webcam ở Google play
+- Khi nhấn start server thì nó sẽ hiện ra cái ip của camera, trông như thế này: http://192.168.1.14:8080 (Thầy có thể bấm vô link để xem thử)
+- Mỗi lần bật là app đổi ip nên khúc connect cam vẫn phải thủ công một chút
+- Yêu cầu là laptop + điện thoại cùng wifi ạ
+
+- Tuy nhiên, khi copy link camera vào backend và frontend, phải thêm "/video" vào nữa
+http://192.168.1.14:8080 => http://192.168.1.14:8080/video 
+
+Nó gen ra json là chạy dc rồi ạ

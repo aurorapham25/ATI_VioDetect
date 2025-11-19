@@ -1,0 +1,13 @@
+# === Chạy backend ===
+cd backend
+docker build -t project_backend .
+docker run -p 8000:8000 project_backend
+
+# Khi backend chạy xong, mở terminal mới
+# === Chạy frontend ===
+cd frontend
+docker build -t project_frontend .
+docker run -p 5731:5731 project_frontend
+
+# Khi frontend hiện link http://localhost:5731 là OK
+# Kết nối camera như tệp cmd_local_run.txt
