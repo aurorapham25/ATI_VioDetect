@@ -12,7 +12,7 @@ export const Header: React.FC<HeaderProps> = ({ onDisconnect }) => {
         <div className="flex items-center">
             <VideoCameraIcon className="w-8 h-8 text-cyan-400" />
             <h1 className="text-2xl font-bold text-white ml-3">
-              AI Surveillance Dashboard
+              ATI VioDetect
             </h1>
         </div>
         <button

@@ -19,7 +19,7 @@ from pipeline.pipeline import pipeline
 NUM_CAMERAS = int(input("Number of camera (from 1 - 8): "))
 lst_camera_urls = []
 for i in range(NUM_CAMERAS):
-    camera_url = input("Link of " + str(i) + "th camera: ")
+    camera_url = input("Link of " + str(i + 1) + "th camera: ")
     lst_camera_urls.append(camera_url)
 
 UPLOAD_DIR = "uploads"

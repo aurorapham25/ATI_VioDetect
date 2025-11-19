@@ -5,7 +5,7 @@ from torch import nn
 
 # Defining architecture
 from ops.temporal_shift import TemporalShift
-from ops.models import TSN
+from ops.models import TSN # Hai class trên sẽ import dc sau khi thêm tsm\temporal-shift-module vào hệ thống
 
 # ... class TSM
 class TSMFeatureModel(nn.Module):

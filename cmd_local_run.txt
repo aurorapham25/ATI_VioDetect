@@ -1,10 +1,13 @@
 Em chào thầy ạ
-Đây là video hướng dẫn chạy project ạ
+Đây là phần hướng dẫn chạy project ạ
 
 Đầu tiên thì mình chạy backend trước
 
+# Note: Model (ResNet50 + TSM) sẽ mặc định dùng GPU để xử lí
+# PyTorch trên máy em: 2.7.1+cu118
+
 1. Chạy backend
-Step 1: cd tới backend
+Step 1: cd tới backend folder
 Step 2: Nhập "python -m uvicorn main.server:app --reload"
 
 Dấu hiệu khi backend chạy dc:
@@ -28,4 +31,4 @@ Kết nối camera:
 - Tuy nhiên, khi copy link camera vào backend và frontend, phải thêm "/video" vào nữa
 http://192.168.1.14:8080 => http://192.168.1.14:8080/video 
 
-Nó gen ra json là chạy dc rồi ạ
+Terminal hiển thị ra json, frontend render dc là chạy dc rồi ạ

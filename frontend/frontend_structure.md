@@ -20,19 +20,22 @@ View your app in AI Studio: https://ai.studio/apps/drive/1TzwYWlYSF-4N66cs6t6h0J
    `npm run dev`
 
 
-project structure
-
-ATI_VIODETECT/
+ATI_VIODETECT/                   # project name
 ├── .vite/
 ├── backend/
 │   ├── backend_structure.md     # this files will describes detailed the structure of the backend part
 ├── frontend/                     
 │   ├── components/
+│           ├── CameraFeed.tsx
+│           ├── CameraSetup.tsx
+│           ├── Header.tsx
+│           ├── icons.tsx
+│           ├── JsonViewer.tsx
+│           ├── VideoUploader.tsx
 │   ├── node_modules/
 │   ├── .env.local
 │   ├── .gitignore
 │   ├── App.tsx
-│   ├── cmd_run.txt              # guide how to run the project
 │   ├── index.html
 │   ├── index.tsx
 │   ├── metadata.json
@@ -42,3 +45,5 @@ ATI_VIODETECT/
 │   ├── tsconfig.json
 │   ├── types.ts
 │   ├── vite.config.ts
+├── cmd_docker_run.txt              # cmd how to run the project
+├── cmd_local_run.txt              # cmd how to run the project

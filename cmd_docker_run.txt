@@ -1,13 +1,26 @@
 # === Chạy backend ===
 cd backend
-docker build -t project_backend .
-docker run -p 8000:8000 project_backend
+docker build -t vio-backend . # File docker nặng 12GB, nên nếu thầy ko muốn build images thì có thể trực tiếp pull từ dockerhub của em
+docker pull minhvanhanu/ati-docker-files:backend
+docker run -p 8000:8000 vio-backend
+
+# Testing backend
+docker run --gpus all -p 8000:8000 vio-backend # Nếu dùng NVIDIA docker
+
+docker exec -it <container_id> python -c "import torch; print(torch.__version__, torch.cuda.is_available())" # Kiểm tra torch version
+2.1.0 True # Output ra như vậy là dc ạ
+
 
 # Khi backend chạy xong, mở terminal mới
 # === Chạy frontend ===
 cd frontend
-docker build -t project_frontend .
-docker run -p 5731:5731 project_frontend
+docker build -t vio-frontend . # nếu thầy muốn tự build images
+docker pull minhvanhanu/ati-docker-files:frontend # nếu thầy muốn pull của em về
+docker run -p 5731:80 vio-frontend
 
 # Khi frontend hiện link http://localhost:5731 là OK
 # Kết nối camera như tệp cmd_local_run.txt
+
+# Dừng container sau khi test
+docker stop VioDetect-frontend VioDetect-backend
+docker rm VioDetect-frontend VioDetect-backend

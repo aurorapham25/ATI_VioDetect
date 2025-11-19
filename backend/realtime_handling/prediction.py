@@ -2,14 +2,13 @@ from tsm.load_tsm import load_TSM
 import torch
 import torch.nn.functional as F
 import cv2
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from .frame_to_vector import frames_to_vectors
 from resnet50.load_resnet50 import load_resnet50_model
 
 
 # Global counter for prediction IDs
 global_counter = 0
-
 def predict_realtime(tsm_model, feature_stack, device='cuda'):
     """
     Run TSM model on feature stack and return structured dictionary with probabilities
@@ -25,6 +24,8 @@ def predict_realtime(tsm_model, feature_stack, device='cuda'):
     """
     global global_counter
     global_counter += 1
+
+    vn_time = datetime.now(timezone(timedelta(hours=7)))
 
     # Move features to device
     feature_stack = feature_stack.to(device)
@@ -60,7 +61,7 @@ def predict_realtime(tsm_model, feature_stack, device='cuda'):
     # Build result dictionary
     result = {
         "id": global_counter,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": vn_time.replace(microsecond=0).isoformat(),
         "cameras": cameras_list
     }
 

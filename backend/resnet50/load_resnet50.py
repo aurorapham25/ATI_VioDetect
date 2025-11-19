@@ -2,7 +2,6 @@ import time
 import torch
 import torch.nn as nn
 
-
 def load_resnet50_model(device=None):
     """
     Load ResNet50 backbone for feature extraction (remove final FC).
